@@ -3,6 +3,7 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
 
         {{-- Inline script to detect system dark mode preference and apply it immediately --}}
         <script>
@@ -21,7 +22,22 @@
 
         <link rel="icon" href="/favicon.ico" sizes="any">
         <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+        <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+        <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
+
+        <!-- Google Fonts for Mobile PWA (DM Sans & Manrope) -->
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+
+        <!-- PWA Web App Manifest & Meta Tags -->
+        <link rel="manifest" href="/manifest.webmanifest">
+        <meta name="theme-color" content="#0C7C70">
+        <meta name="application-name" content="Wansha Antrian">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="default">
+        <meta name="apple-mobile-web-app-title" content="Wansha Antrian">
 
         @fonts
 
@@ -203,12 +219,13 @@
             /* Mobile Sidebar Drawer Layout */
             @media (max-width: 991.98px) {
                 .mobile-sidebar-backdrop {
-                    position: fixed;
-                    inset: 0;
-                    background-color: rgba(10, 25, 23, 0.65);
-                    backdrop-filter: blur(4px);
-                    z-index: 1040;
-                    transition: opacity 0.25s ease;
+                    position: fixed !important;
+                    inset: 0 !important;
+                    background-color: rgba(10, 25, 23, 0.65) !important;
+                    backdrop-filter: blur(4px) !important;
+                    -webkit-backdrop-filter: blur(4px) !important;
+                    z-index: 1040 !important;
+                    transition: opacity 0.25s ease !important;
                 }
 
                 .navbar-vertical.navbar-expand-lg {
@@ -216,43 +233,128 @@
                     top: 0 !important;
                     bottom: 0 !important;
                     left: 0 !important;
-                    width: 280px !important;
-                    max-width: 82vw !important;
+                    width: 285px !important;
+                    max-width: 85vw !important;
+                    height: 100vh !important;
+                    height: 100dvh !important;
                     z-index: 1050 !important;
                     box-shadow: 6px 0 32px rgba(0, 0, 0, 0.45) !important;
-                    transform: translateX(-100%);
+                    transform: translateX(-100%) !important;
                     transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1) !important;
                     overflow-y: auto !important;
+                    overflow-x: hidden !important;
+                    -webkit-overflow-scrolling: touch !important;
                     display: flex !important;
                     flex-direction: column !important;
-                    height: 100vh !important;
+                    align-items: stretch !important;
                     padding: 0 !important;
+                    background-color: #112926 !important;
                 }
 
                 .navbar-vertical.navbar-expand-lg.mobile-drawer-open {
                     transform: translateX(0) !important;
                 }
 
+                .navbar-vertical.navbar-expand-lg > .container-fluid {
+                    display: flex !important;
+                    flex-direction: column !important;
+                    flex-wrap: nowrap !important;
+                    align-items: stretch !important;
+                    justify-content: flex-start !important;
+                    min-height: 100% !important;
+                    height: auto !important;
+                    padding: 1.25rem 1rem !important;
+                    width: 100% !important;
+                    box-sizing: border-box !important;
+                }
+
                 .navbar-vertical.navbar-expand-lg .navbar-collapse {
                     display: flex !important;
                     flex-direction: column !important;
+                    flex-wrap: nowrap !important;
+                    align-items: stretch !important;
+                    justify-content: flex-start !important;
                     width: 100% !important;
+                    flex-grow: 1 !important;
                     visibility: visible !important;
+                    opacity: 1 !important;
+                }
+
+                .navbar-vertical.navbar-expand-lg .navbar-nav {
+                    display: flex !important;
+                    flex-direction: column !important;
+                    flex-wrap: nowrap !important;
+                    align-items: stretch !important;
+                    width: 100% !important;
+                    gap: 0.35rem !important;
+                    padding: 0 !important;
+                    margin: 0 !important;
+                }
+
+                .navbar-vertical.navbar-expand-lg .navbar-nav .nav-item {
+                    width: 100% !important;
+                    display: block !important;
+                }
+
+                .navbar-vertical.navbar-expand-lg .navbar-nav .nav-link {
+                    display: flex !important;
+                    flex-direction: row !important;
+                    align-items: center !important;
+                    justify-content: flex-start !important;
+                    width: 100% !important;
+                    text-align: left !important;
+                    padding: 0.65rem 0.95rem !important;
+                    gap: 0.75rem !important;
                 }
 
                 .page-wrapper {
                     margin-left: 0 !important;
                     width: 100% !important;
+                    padding-top: 54px !important;
                 }
 
                 .mobile-top-bar {
                     display: flex !important;
-                    position: sticky !important;
+                    position: fixed !important;
                     top: 0 !important;
-                    z-index: 1020 !important;
+                    left: 0 !important;
+                    right: 0 !important;
+                    width: 100% !important;
+                    z-index: 1030 !important;
                     background-color: #112926 !important;
                     border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
                     padding: 0.65rem 1rem !important;
+                }
+
+                /* Fixed Top Navbar on Mobile Web (Cannot be scrolled away) */
+                .portal-header {
+                    position: fixed !important;
+                    top: 0 !important;
+                    left: 0 !important;
+                    right: 0 !important;
+                    width: 100% !important;
+                    z-index: 1030 !important;
+                    background-color: #ffffff !important;
+                }
+
+                .portal-content-wrap {
+                    padding-top: 60px !important;
+                }
+
+                /* Prevent body / background scrolling when mobile menu drawer is open (Mobile Only) */
+                body.mobile-drawer-locked {
+                    overflow: hidden !important;
+                    position: fixed !important;
+                    width: 100% !important;
+                    height: 100% !important;
+                    touch-action: none !important;
+                    -webkit-overflow-scrolling: auto !important;
+                }
+            }
+
+            @media (min-width: 992px) {
+                .portal-content-wrap {
+                    padding-top: 0 !important;
                 }
             }
 
@@ -315,5 +417,18 @@
     <body class="font-sans antialiased" style="background-color: #F4F7F6;">
         <x-inertia::app />
         <script src="/tabler/js/tabler.min.js" defer></script>
+        <script>
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                    navigator.serviceWorker.register('/sw.js')
+                        .then((reg) => {
+                            console.log('[PWA] Service Worker terdaftar dengan scope:', reg.scope);
+                        })
+                        .catch((err) => {
+                            console.warn('[PWA] Service Worker gagal didaftarkan:', err);
+                        });
+                });
+            }
+        </script>
     </body>
 </html>

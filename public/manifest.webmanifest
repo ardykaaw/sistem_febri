@@ -1,0 +1,89 @@
+{
+  "id": "/?source=pwa",
+  "name": "Wansha Dental Care - Sistem Antrian",
+  "short_name": "Wansha Antrian",
+  "description": "Sistem Informasi Antrian dan Reservasi Pasien Online Klinik Gigi Wansha Dental Care",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": [
+    "window-controls-overlay",
+    "standalone",
+    "minimal-ui"
+  ],
+  "background_color": "#F4F7F6",
+  "theme_color": "#0C7C70",
+  "orientation": "any",
+  "lang": "id-ID",
+  "dir": "ltr",
+  "categories": [
+    "medical",
+    "health",
+    "productivity",
+    "utilities"
+  ],
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Ambil Antrian",
+      "short_name": "Antrian",
+      "description": "Ambil Tiket Antrian & Reservasi Pasien",
+      "url": "/?action=booking",
+      "icons": [
+        {
+          "src": "/icons/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Scan QR Tiket",
+      "short_name": "Scan QR",
+      "description": "Scanner Validasi Tiket Antrian",
+      "url": "/admin/scanner",
+      "icons": [
+        {
+          "src": "/icons/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Display TV Antrian",
+      "short_name": "TV Display",
+      "description": "Layar Monitor Panggilan Antrian",
+      "url": "/tv-display",
+      "icons": [
+        {
+          "src": "/icons/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ]
+}
+

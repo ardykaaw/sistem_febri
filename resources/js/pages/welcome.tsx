@@ -2,6 +2,8 @@ import { Head, Link, usePage } from '@inertiajs/react';
 import { dashboard, login, register } from '@/routes';
 import { useState, useEffect } from 'react';
 import ChatbotWidget from '@/components/chatbot-widget';
+import PwaInstallBanner from '@/components/pwa-install-banner';
+import MobilePwaApp from '@/components/mobile-pwa-app';
 import { 
     Clock, 
     Users, 
@@ -25,7 +27,10 @@ import {
     Activity,
     PhoneCall,
     User,
-    Ticket
+    Ticket,
+    Download,
+    Smartphone,
+    Heart
 } from 'lucide-react';
 
 interface QueueItem {
@@ -99,12 +104,42 @@ export default function Welcome() {
     const { auth } = usePage<any>().props;
     const currentUser = auth?.user;
 
+    // Dual-Experience Detection: PWA Standalone vs Browser
+    const [isPwaView, setIsPwaView] = useState(false);
+
+    useEffect(() => {
+        const checkMode = () => {
+            const isStandalone =
+                window.matchMedia('(display-mode: standalone)').matches ||
+                (window.navigator as unknown as { standalone?: boolean }).standalone === true ||
+                document.referrer.includes('android-app://') ||
+                new URLSearchParams(window.location.search).get('source') === 'pwa' ||
+                new URLSearchParams(window.location.search).get('mode') === 'app';
+            setIsPwaView(isStandalone);
+        };
+
+        checkMode();
+    }, []);
+
     const [liveQueue, setLiveQueue] = useState<QueueItem[]>([]);
     const [currentlyCalling, setCurrentlyCalling] = useState<QueueItem[]>([]);
     const [searchCode, setSearchCode] = useState('');
     const [searchResult, setSearchResult] = useState<QueueItem | null | 'not_found'>(null);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [showBookingModal, setShowBookingModal] = useState(false);
+
+    // Prevent body scroll when mobile menu drawer is open (mobile only)
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        if (mobileMenuOpen) {
+            document.body.classList.add('mobile-drawer-locked');
+            document.body.style.overflow = 'hidden';
+            return () => {
+                document.body.classList.remove('mobile-drawer-locked');
+                document.body.style.overflow = '';
+            };
+        }
+    }, [mobileMenuOpen]);
 
     // Reservation State
     const [service, setService] = useState('Scaling karang gigi');
@@ -198,12 +233,22 @@ export default function Welcome() {
         ? currentlyCalling[0] 
         : (liveQueue.length > 0 ? liveQueue[0] : null);
 
+    // If PWA standalone mode is active, render mobile native app UI
+    if (isPwaView) {
+        return (
+            <>
+                <Head title="Wansha Antrian App" />
+                <MobilePwaApp onBackToWeb={() => setIsPwaView(false)} />
+            </>
+        );
+    }
+
     return (
         <div style={{ backgroundColor: '#F8FAF9', color: '#173F3C', minHeight: '100vh', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
             <Head title="Klinik Gigi Wansha - Perawatan Gigi & Sistem Antrean Cerdas" />
 
             {/* Top Navigation Bar */}
-            <header className="sticky-top bg-white border-bottom shadow-xs" style={{ zIndex: 1020 }}>
+            <header className="portal-header sticky-top bg-white border-bottom shadow-xs" style={{ zIndex: 1020 }}>
                 <div className="container-xl py-2 d-flex align-items-center justify-content-between">
                     {/* Brand */}
                     <a href="#" className="d-flex align-items-center text-decoration-none gap-2">
@@ -231,22 +276,43 @@ export default function Welcome() {
                         <a href="#maskot" className="btn btn-ghost-secondary btn-sm px-3 fw-bold">Maskot Wanshy</a>
                         <a href="#dokter" className="btn btn-ghost-secondary btn-sm px-3 fw-bold">Jadwal Dokter</a>
                         <a href="#kontak" className="btn btn-ghost-secondary btn-sm px-3 fw-bold">Kontak &amp; Lokasi</a>
+                        <button
+                            type="button"
+                            onClick={() => window.dispatchEvent(new CustomEvent('trigger-pwa-install'))}
+                            className="btn btn-outline-teal btn-sm px-2.5 py-1.5 fw-bold d-inline-flex align-items-center gap-1.5 ms-1"
+                            style={{ borderRadius: '8px', fontSize: '12px', borderColor: 'rgba(12, 124, 112, 0.3)', color: '#0C7C70' }}
+                            title="Install Aplikasi PWA"
+                        >
+                            <Download style={{ width: 13, height: 13 }} />
+                            <span>Install App</span>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setIsPwaView(true)}
+                            className="btn btn-teal btn-sm px-2.5 py-1.5 fw-bold d-inline-flex align-items-center gap-1.5 ms-1 text-white shadow-xs"
+                            style={{ borderRadius: '8px', fontSize: '12px', backgroundColor: '#0C7C70' }}
+                            title="Buka Tampilan Mode Mobile App PWA"
+                        >
+                            <Smartphone style={{ width: 13, height: 13 }} />
+                            <span>Mode App PWA</span>
+                        </button>
                     </nav>
 
                     {/* Auth & Quick Action Buttons */}
-                    <div className="d-flex align-items-center gap-2.5">
+                    <div className="d-flex align-items-center gap-2">
                         {currentUser ? (
                             <Link 
                                 href={dashboard()} 
-                                className="btn btn-primary d-inline-flex align-items-center gap-2 px-3.5 py-2 text-white fw-bold shadow-sm text-decoration-none"
+                                className="btn btn-primary d-inline-flex align-items-center gap-1.5 px-3 py-1.5 text-white fw-bold shadow-sm text-decoration-none"
                                 style={{
                                     borderRadius: '10px',
-                                    fontSize: '14px',
+                                    fontSize: '13px',
                                 }}
                             >
-                                <User style={{ width: 15, height: 15 }} />
-                                <span>Dashboard ({currentUser.name.split(' ')[0]})</span>
-                                <ArrowRight style={{ width: 14, height: 14 }} />
+                                <User style={{ width: 14, height: 14 }} />
+                                <span className="d-none d-sm-inline">Dashboard ({currentUser.name.split(' ')[0]})</span>
+                                <span className="d-sm-none">Dashboard</span>
+                                <ArrowRight style={{ width: 13, height: 13 }} />
                             </Link>
                         ) : (
                             <>
@@ -274,7 +340,7 @@ export default function Welcome() {
                                 </Link>
                                 <Link 
                                     href={register()} 
-                                    className="btn btn-primary d-inline-flex align-items-center gap-2 px-3.5 py-2 text-white fw-bold shadow-sm text-decoration-none"
+                                    className="btn btn-primary d-none d-sm-inline-flex align-items-center gap-2 px-3.5 py-2 text-white fw-bold shadow-sm text-decoration-none"
                                     style={{
                                         borderRadius: '10px',
                                         fontSize: '14px',
@@ -285,58 +351,218 @@ export default function Welcome() {
                                     <span>Daftar &amp; Ambil Antrean</span>
                                     <ArrowRight style={{ width: 14, height: 14 }} />
                                 </Link>
+                                <Link 
+                                    href={register()} 
+                                    className="btn btn-primary btn-sm d-inline-flex d-sm-none align-items-center gap-1 px-2.5 py-1.5 text-white fw-bold shadow-sm text-decoration-none"
+                                    style={{
+                                        borderRadius: '8px',
+                                        fontSize: '12px',
+                                        boxShadow: '0 2px 8px rgba(12, 124, 112, 0.25)',
+                                    }}
+                                >
+                                    <Ticket style={{ width: 13, height: 13 }} />
+                                    <span>Ambil Antrean</span>
+                                </Link>
                             </>
                         )}
 
                         {/* Mobile Menu Toggle */}
                         <button 
                             className="btn btn-icon btn-ghost-secondary d-lg-none" 
-                            style={{ borderRadius: '10px' }}
-                            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                            style={{ borderRadius: '10px', width: 38, height: 38 }}
+                            onClick={() => setMobileMenuOpen(true)}
                             aria-label="Toggle Navigation"
                         >
-                            {mobileMenuOpen ? <X style={{ width: 20, height: 20 }} /> : <Menu style={{ width: 20, height: 20 }} />}
+                            <Menu style={{ width: 20, height: 20 }} />
                         </button>
                     </div>
                 </div>
 
-                {/* Mobile Drawer Menu */}
+                {/* Mobile Drawer Menu (Offcanvas with backdrop) */}
                 {mobileMenuOpen && (
-                    <div className="d-lg-none bg-white border-top p-3 shadow-lg">
-                        <div className="d-flex flex-column gap-2">
-                            <a href="#antrean" onClick={() => setMobileMenuOpen(false)} className="nav-link py-2 px-3 fw-bold text-dark rounded-2">Status Antrean Live</a>
-                            <a href="#layanan" onClick={() => setMobileMenuOpen(false)} className="nav-link py-2 px-3 fw-bold text-dark rounded-2">Layanan Gigi Lengkap</a>
-                            <a href="#maskot" onClick={() => setMobileMenuOpen(false)} className="nav-link py-2 px-3 fw-bold text-dark rounded-2">Maskot Gigi Wanshy</a>
-                            <a href="#dokter" onClick={() => setMobileMenuOpen(false)} className="nav-link py-2 px-3 fw-bold text-dark rounded-2">Jadwal Dokter Spesialis</a>
-                            <a href="#kontak" onClick={() => setMobileMenuOpen(false)} className="nav-link py-2 px-3 fw-bold text-dark rounded-2">Kontak &amp; Lokasi</a>
-                            <hr className="my-2" />
-                            {currentUser ? (
-                                <Link href={dashboard()} className="btn btn-primary w-100 py-2.5 fw-bold" style={{ borderRadius: '10px' }}>Buka Dashboard</Link>
-                            ) : (
-                                <div className="d-flex gap-2">
-                                    <Link 
-                                        href={login()} 
-                                        className="btn btn-outline-secondary w-50 py-2 fw-bold text-center text-decoration-none"
-                                        style={{ borderRadius: '10px' }}
-                                    >
-                                        Masuk
-                                    </Link>
-                                    <Link 
-                                        href={register()} 
-                                        onClick={() => setMobileMenuOpen(false)} 
-                                        className="btn btn-primary w-50 py-2 fw-bold text-white shadow-sm text-center text-decoration-none"
-                                        style={{ borderRadius: '10px' }}
-                                    >
-                                        Daftar Antrean
-                                    </Link>
-                                </div>
-                            )}
+                    <div 
+                        className="d-lg-none"
+                        style={{
+                            position: 'fixed',
+                            inset: 0,
+                            backgroundColor: 'rgba(10, 25, 23, 0.65)',
+                            backdropFilter: 'blur(4px)',
+                            WebkitBackdropFilter: 'blur(4px)',
+                            zIndex: 1040,
+                            transition: 'opacity 0.2s ease',
+                            touchAction: 'none',
+                        }}
+                        onClick={() => setMobileMenuOpen(false)}
+                        onTouchMove={(e) => e.preventDefault()}
+                    />
+                )}
+                <div 
+                    className="d-lg-none bg-white d-flex flex-column"
+                    style={{
+                        position: 'fixed',
+                        top: 0,
+                        right: 0,
+                        bottom: 0,
+                        width: '300px',
+                        maxWidth: '85vw',
+                        height: '100dvh',
+                        zIndex: 1050,
+                        boxShadow: '-8px 0 32px rgba(0, 0, 0, 0.25)',
+                        transform: mobileMenuOpen ? 'translateX(0)' : 'translateX(100%)',
+                        transition: 'transform 0.28s cubic-bezier(0.16, 1, 0.3, 1)',
+                        visibility: mobileMenuOpen ? 'visible' : 'hidden',
+                        overflowY: 'auto',
+                        overscrollBehavior: 'contain',
+                        WebkitOverflowScrolling: 'touch',
+                    }}
+                >
+                    {/* Drawer Header */}
+                    <div className="p-3 border-bottom d-flex align-items-center justify-content-between">
+                        <div className="d-flex align-items-center gap-2">
+                            <div 
+                                className="d-flex align-items-center justify-content-center rounded-3 text-white shadow-sm"
+                                style={{ width: 36, height: 36, background: 'linear-gradient(135deg, #0C7C70, #08554D)' }}
+                            >
+                                <svg viewBox="0 0 32 32" style={{ width: 20, height: 20, fill: '#FFFFFF' }} aria-hidden="true">
+                                    <path d="M9.2 5.4c2.3-1.6 4.2.7 6.8.7s4.5-2.3 6.8-.7c4 2.8.5 8.5-.6 12.4-1.5 5.2-2.5 8-4.7 7.8-1.8-.2-1.3-5.4-2.7-5.4s-.9 5.2-2.7 5.4c-2.2.2-3.2-2.6-4.7-7.8-1.1-3.9-4.6-9.6-.6-12.4Z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <span className="d-block fw-bold fs-4 text-dark lh-1">Klinik Wansha</span>
+                                <span className="d-block text-secondary small" style={{ fontSize: '10px' }}>Poli &amp; Antrean Gigi</span>
+                            </div>
+                        </div>
+                        <button
+                            type="button"
+                            className="btn btn-sm btn-icon btn-ghost-secondary border-0"
+                            style={{ width: 32, height: 32, borderRadius: '8px' }}
+                            onClick={() => setMobileMenuOpen(false)}
+                            aria-label="Tutup Menu"
+                        >
+                            <X style={{ width: 18, height: 18 }} />
+                        </button>
+                    </div>
+
+                    {/* Drawer Content */}
+                    <div className="p-3 d-flex flex-column gap-2 flex-grow-1">
+                        <div className="text-uppercase fw-bold px-2 py-1" style={{ fontSize: '10px', letterSpacing: '0.08em', color: '#7E9F97' }}>
+                            Navigasi Utama
+                        </div>
+                        <a 
+                            href="#antrean" 
+                            onClick={() => setMobileMenuOpen(false)} 
+                            className="btn btn-ghost-dark text-start d-flex align-items-center gap-2.5 py-2 px-3 fw-bold rounded-2 text-decoration-none"
+                            style={{ color: '#173F3C', fontSize: '13px' }}
+                        >
+                            <Activity style={{ width: 16, height: 16, color: '#0C7C70' }} />
+                            <span>Status Antrean Live</span>
+                        </a>
+                        <a 
+                            href="#layanan" 
+                            onClick={() => setMobileMenuOpen(false)} 
+                            className="btn btn-ghost-dark text-start d-flex align-items-center gap-2.5 py-2 px-3 fw-bold rounded-2 text-decoration-none"
+                            style={{ color: '#173F3C', fontSize: '13px' }}
+                        >
+                            <Sparkles style={{ width: 16, height: 16, color: '#0C7C70' }} />
+                            <span>Layanan Gigi Lengkap</span>
+                        </a>
+                        <a 
+                            href="#maskot" 
+                            onClick={() => setMobileMenuOpen(false)} 
+                            className="btn btn-ghost-dark text-start d-flex align-items-center gap-2.5 py-2 px-3 fw-bold rounded-2 text-decoration-none"
+                            style={{ color: '#173F3C', fontSize: '13px' }}
+                        >
+                            <Heart style={{ width: 16, height: 16, color: '#0C7C70' }} />
+                            <span>Maskot Gigi Wanshy</span>
+                        </a>
+                        <a 
+                            href="#dokter" 
+                            onClick={() => setMobileMenuOpen(false)} 
+                            className="btn btn-ghost-dark text-start d-flex align-items-center gap-2.5 py-2 px-3 fw-bold rounded-2 text-decoration-none"
+                            style={{ color: '#173F3C', fontSize: '13px' }}
+                        >
+                            <Clock style={{ width: 16, height: 16, color: '#0C7C70' }} />
+                            <span>Jadwal Dokter Gigi</span>
+                        </a>
+                        <a 
+                            href="#kontak" 
+                            onClick={() => setMobileMenuOpen(false)} 
+                            className="btn btn-ghost-dark text-start d-flex align-items-center gap-2.5 py-2 px-3 fw-bold rounded-2 text-decoration-none"
+                            style={{ color: '#173F3C', fontSize: '13px' }}
+                        >
+                            <PhoneCall style={{ width: 16, height: 16, color: '#0C7C70' }} />
+                            <span>Kontak &amp; Lokasi</span>
+                        </a>
+
+                        <div className="border-top my-2 pt-2 d-flex flex-column gap-2">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setMobileMenuOpen(false);
+                                    setIsPwaView(true);
+                                }}
+                                className="btn btn-teal text-white w-100 d-flex align-items-center justify-content-center gap-2 py-2 fw-bold shadow-xs text-start"
+                                style={{ backgroundColor: '#0C7C70', borderRadius: '10px', fontSize: '13px' }}
+                            >
+                                <Smartphone style={{ width: 16, height: 16 }} />
+                                <span>Mode App Mobile (PWA)</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setMobileMenuOpen(false);
+                                    window.dispatchEvent(new CustomEvent('trigger-pwa-install'));
+                                }}
+                                className="btn btn-outline-teal w-100 d-flex align-items-center justify-content-center gap-2 py-2 fw-bold text-start"
+                                style={{ color: '#0C7C70', borderColor: 'rgba(12, 124, 112, 0.3)', borderRadius: '10px', fontSize: '13px' }}
+                            >
+                                <Download style={{ width: 16, height: 16 }} />
+                                <span>Install Aplikasi PWA</span>
+                            </button>
                         </div>
                     </div>
-                )}
+
+                    {/* Drawer Bottom Auth Section */}
+                    <div className="p-3 border-top bg-light">
+                        {currentUser ? (
+                            <Link 
+                                href={dashboard()} 
+                                onClick={() => setMobileMenuOpen(false)}
+                                className="btn btn-primary w-100 d-flex align-items-center justify-content-center gap-2 py-2.5 text-white fw-bold shadow-sm text-decoration-none"
+                                style={{ borderRadius: '10px' }}
+                            >
+                                <User style={{ width: 16, height: 16 }} />
+                                <span>Buka Dashboard ({currentUser.name.split(' ')[0]})</span>
+                            </Link>
+                        ) : (
+                            <div className="d-flex flex-column gap-2">
+                                <Link 
+                                    href={register()} 
+                                    onClick={() => setMobileMenuOpen(false)}
+                                    className="btn btn-primary w-100 d-flex align-items-center justify-content-center gap-2 py-2.5 text-white fw-bold shadow-sm text-decoration-none"
+                                    style={{ borderRadius: '10px' }}
+                                >
+                                    <Ticket style={{ width: 16, height: 16 }} />
+                                    <span>Daftar &amp; Ambil Antrean</span>
+                                </Link>
+                                <Link 
+                                    href={login()} 
+                                    onClick={() => setMobileMenuOpen(false)}
+                                    className="btn btn-outline-secondary w-100 d-flex align-items-center justify-content-center gap-2 py-2 fw-bold text-decoration-none"
+                                    style={{ borderRadius: '10px', fontSize: '13px' }}
+                                >
+                                    <User style={{ width: 15, height: 15 }} />
+                                    <span>Masuk ke Akun Pasien</span>
+                                </Link>
+                            </div>
+                        )}
+                    </div>
+                </div>
             </header>
 
-            {/* Hero Section */}
+            {/* Portal Content Wrapper for Mobile Fixed Navbar */}
+            <main className="portal-content-wrap">
+                {/* Hero Section */}
             <section className="py-5" style={{ background: 'linear-gradient(180deg, #F0F7F4 0%, #F8FAF9 100%)' }}>
                 <div className="container-xl py-3">
                     <div className="row g-4 align-items-center">
@@ -1075,8 +1301,13 @@ export default function Welcome() {
                 </div>
             )}
 
+            </main>
+
             {/* Asisten Virtual Chatbot Widget */}
             <ChatbotWidget />
+
+            {/* PWA Install Banner */}
+            <PwaInstallBanner />
         </div>
     );
 }

@@ -2,6 +2,7 @@ import { Link, usePage, router } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 import type { BreadcrumbItem } from '@/types';
 import ChatbotWidget from '@/components/chatbot-widget';
+import PwaInstallBanner from '@/components/pwa-install-banner';
 import { 
     LayoutDashboard, 
     ListOrdered, 
@@ -17,7 +18,8 @@ import {
     Shield,
     PhoneCall,
     Tv,
-    Sparkles
+    Sparkles,
+    Download
 } from 'lucide-react';
 
 interface TablerLayoutProps {
@@ -49,6 +51,19 @@ export default function TablerLayout({ children, breadcrumbs = [] }: TablerLayou
         const timer = setInterval(updateTime, 1000);
         return () => clearInterval(timer);
     }, []);
+
+    // Prevent body scroll when mobile menu drawer is open (mobile only)
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        if (mobileMenuOpen) {
+            document.body.classList.add('mobile-drawer-locked');
+            document.body.style.overflow = 'hidden';
+            return () => {
+                document.body.classList.remove('mobile-drawer-locked');
+                document.body.style.overflow = '';
+            };
+        }
+    }, [mobileMenuOpen]);
 
     const handleLogout = (e: React.FormEvent) => {
         e.preventDefault();
@@ -87,6 +102,12 @@ export default function TablerLayout({ children, breadcrumbs = [] }: TablerLayou
             href: '/',
             icon: Home,
         },
+        {
+            title: 'Pasang Aplikasi (PWA)',
+            href: '#pwa-install',
+            icon: Download,
+            isPwaInstall: true,
+        },
     ];
 
     const patientNavItems = [
@@ -105,6 +126,12 @@ export default function TablerLayout({ children, breadcrumbs = [] }: TablerLayou
             title: 'Halaman Beranda',
             href: '/',
             icon: Home,
+        },
+        {
+            title: 'Pasang Aplikasi (PWA)',
+            href: '#pwa-install',
+            icon: Download,
+            isPwaInstall: true,
         },
     ];
 
@@ -161,6 +188,7 @@ export default function TablerLayout({ children, breadcrumbs = [] }: TablerLayou
                 <div 
                     className="mobile-sidebar-backdrop"
                     onClick={() => setMobileMenuOpen(false)}
+                    onTouchMove={(e) => e.preventDefault()}
                     aria-hidden="true"
                 />
             )}
@@ -226,6 +254,36 @@ export default function TablerLayout({ children, breadcrumbs = [] }: TablerLayou
                                 const Icon = item.icon;
                                 const isExternal = 'newTab' in item && item.newTab;
                                 const isChat = 'isChat' in item && item.isChat;
+                                const isPwa = 'isPwaInstall' in item && item.isPwaInstall;
+
+                                if (isPwa) {
+                                    return (
+                                        <li key={item.title} className="nav-item w-100">
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setMobileMenuOpen(false);
+                                                    window.dispatchEvent(new CustomEvent('trigger-pwa-install'));
+                                                }}
+                                                className="nav-link w-100 d-flex align-items-center gap-2 px-3 py-2 rounded-2 text-decoration-none border-0 text-start"
+                                                style={{
+                                                    color: '#A3C2BB',
+                                                    backgroundColor: 'transparent',
+                                                    fontSize: '13px',
+                                                    cursor: 'pointer'
+                                                }}
+                                            >
+                                                <span className="nav-link-icon d-inline-flex align-items-center justify-content-center" style={{ width: 20, height: 20, color: '#20C997' }}>
+                                                    <Download style={{ width: 18, height: 18 }} />
+                                                </span>
+                                                <span className="nav-link-title flex-grow-1">
+                                                    {item.title}
+                                                </span>
+                                                <span className="badge bg-teal-lt text-teal" style={{ fontSize: '9px' }}>PWA</span>
+                                            </button>
+                                        </li>
+                                    );
+                                }
 
                                 if (isChat) {
                                     return (
@@ -343,7 +401,7 @@ export default function TablerLayout({ children, breadcrumbs = [] }: TablerLayou
                         <ol className="breadcrumb mb-0 py-1">
                             {breadcrumbs.length > 0 ? (
                                 breadcrumbs.map((b, idx) => (
-                                    <li key={b.href} className={`breadcrumb-item ${idx === breadcrumbs.length - 1 ? 'active fw-bold text-dark' : 'text-secondary'}`}>
+                                    <li key={typeof b.href === 'string' ? b.href : idx} className={`breadcrumb-item ${idx === breadcrumbs.length - 1 ? 'active fw-bold text-dark' : 'text-secondary'}`}>
                                         {idx === breadcrumbs.length - 1 ? (
                                             <span>{b.title}</span>
                                         ) : (
@@ -449,6 +507,9 @@ export default function TablerLayout({ children, breadcrumbs = [] }: TablerLayou
 
             {/* Asisten Virtual Chatbot Widget */}
             <ChatbotWidget />
+
+            {/* PWA Install Banner */}
+            <PwaInstallBanner />
         </div>
     );
 }

@@ -24,6 +24,16 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureDefaults();
+
+        if (
+            $this->app->environment('production') ||
+            request()->header('x-forwarded-proto') === 'https' ||
+            str_contains(request()->getHost(), 'trycloudflare.com') ||
+            str_contains(request()->getHost(), 'ngrok') ||
+            str_contains(request()->getHost(), 'loca.lt')
+        ) {
+            \Illuminate\Support\Facades\URL::forceScheme('https');
+        }
     }
 
     /**
