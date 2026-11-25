@@ -248,6 +248,7 @@ export default function Welcome() {
             <Head title="Klinik Gigi Wansha - Perawatan Gigi & Sistem Antrean Cerdas" />
 
             {/* Top Navigation Bar */}
+            <header className="sticky-top bg-white border-bottom shadow-xs" style={{ zIndex: 1020 }}>
             <header className="portal-header sticky-top bg-white border-bottom shadow-xs" style={{ zIndex: 1020 }}>
                 <div className="container-xl py-2 d-flex align-items-center justify-content-between">
                     {/* Brand */}
@@ -560,6 +561,7 @@ export default function Welcome() {
                 </div>
             </header>
 
+            {/* Hero Section */}
             {/* Portal Content Wrapper for Mobile Fixed Navbar */}
             <main className="portal-content-wrap">
                 {/* Hero Section */}

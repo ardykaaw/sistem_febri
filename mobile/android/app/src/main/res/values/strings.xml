@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Klinik Wansha</string>
+    <string name="title_activity_main">Klinik Wansha</string>
+    <string name="package_name">com.wansha.dental</string>
+    <string name="custom_url_scheme">com.wansha.dental</string>
+</resources>
